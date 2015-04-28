@@ -1,4 +1,4 @@
-var timerModule = angular.module('timer', [])
+angular.module('timer', [])
   .directive('timer', ['$compile', function ($compile) {
     return  {
       restrict: 'EA',
@@ -12,41 +12,15 @@ var timerModule = angular.module('timer', [])
         autoStart: '&autoStart',
         language: '@?',
         fallback: '@?',
+        timeUnits: '=',
         maxTimeUnit: '='
       },
-      controller: ['$scope', '$element', '$attrs', '$timeout', 'I18nService', '$interpolate', 'progressBarService', function ($scope, $element, $attrs, $timeout, I18nService, $interpolate, progressBarService) {
-
-        // Checking for trim function since IE8 doesn't have it
-        // If not a function, create tirm with RegEx to mimic native trim
-        if (typeof String.prototype.trim !== 'function') {
-          String.prototype.trim = function () {
-            return this.replace(/^\s+|\s+$/g, '');
-          };
-        }
+      controller: ['$scope', '$element', '$attrs', '$timeout', '$interpolate', function ($scope, $element, $attrs, $timeout, $interpolate) {
 
         //angular 1.2 doesn't support attributes ending in "-start", so we're
         //supporting both "autostart" and "auto-start" as a solution for
         //backward and forward compatibility.
         $scope.autoStart = $attrs.autoStart || $attrs.autostart;
-
-
-        $scope.language = $scope.language || 'en';
-        $scope.fallback = $scope.fallback || 'en';
-
-        //allow to change the language of the directive while already launched
-        $scope.$watch('language', function(newVal, oldVal) {
-          if(newVal !== undefined) {
-            i18nService.init(newVal, $scope.fallback);
-          }
-        });
-
-        //init momentJS i18n, default english
-        var i18nService = new I18nService();
-        i18nService.init($scope.language, $scope.fallback);
-
-        //progress bar
-        $scope.displayProgressBar = 0;
-        $scope.displayProgressActive = 'active'; //Bootstrap active effect for progress bar
 
         if ($element.html().trim().length === 0) {
           $element.append($compile('<span>' + $interpolate.startSymbol() + 'millis' + $interpolate.endSymbol() + '</span>')($scope));
@@ -160,7 +134,7 @@ var timerModule = angular.module('timer', [])
             $scope.millis = moment().diff(moment($scope.startTimeAttr));
           }
 
-          timeUnits = i18nService.getTimeUnits($scope.millis);
+          timeUnits = $scope.timeUnits;
 
           // compute time values based on maxTimeUnit specification
           if (!$scope.maxTimeUnit || $scope.maxTimeUnit === 'day') {
@@ -266,18 +240,16 @@ var timerModule = angular.module('timer', [])
         calculateTimeUnits();
 
         var tick = function tick() {
-          var typeTimer = null; // countdown or endTimeAttr
+
           $scope.millis = moment().diff($scope.startTime);
           var adjustment = $scope.millis % 1000;
 
           if ($scope.endTimeAttr) {
-            typeTimer = $scope.endTimeAttr;
             $scope.millis = moment($scope.endTime).diff(moment());
             adjustment = $scope.interval - $scope.millis % 1000;
           }
 
           if ($scope.countdownattr) {
-            typeTimer = $scope.countdownattr;
             $scope.millis = $scope.countdown * 1000;
           }
 
@@ -309,15 +281,6 @@ var timerModule = angular.module('timer', [])
               $scope.$eval($scope.finishCallback);
             }
           }
-
-          if(typeTimer !== null){
-            //calculate progress bar
-            $scope.progressBar = progressBarService.calculateProgressBar($scope.startTime, $scope.millis, $scope.endTime, $scope.countdownattr);
-
-            if($scope.progressBar === 100){
-              $scope.displayProgressActive = ''; //No more Bootstrap active effect
-            }
-          }
         };
 
         if ($scope.autoStart === undefined || $scope.autoStart === true) {
@@ -325,9 +288,4 @@ var timerModule = angular.module('timer', [])
         }
       }]
     };
-    }]);
-
-/* commonjs package manager support (eg componentjs) */
-if (typeof module !== "undefined" && typeof exports !== "undefined" && module.exports === exports){
-  module.exports = timerModule;
-}
+  }]);
