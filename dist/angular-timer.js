@@ -1,5 +1,5 @@
 /**
- * angular-timer - v1.3.1 - 2015-04-28 6:17 PM
+ * angular-timer - v1.3.1.2 - 2015-08-03 4:38 PM
  * https://github.com/siddii/angular-timer
  *
  * Copyright (c) 2015 Siddique Hameed
@@ -73,6 +73,12 @@ angular.module('timer', [])
         $scope.$watch('startTimeAttr', function(newValue, oldValue) {
           if (newValue !== oldValue && $scope.isRunning) {
             $scope.start();
+          }
+        });
+
+        $scope.$watch('endTimeAttr', function(newValue, oldValue) {
+          if (newValue !== oldValue) {
+            $scope.endTime = newValue ? moment(newValue) : null;
           }
         });
 
