@@ -1,5 +1,5 @@
 /**
- * angular-timer - v1.3.1 - 2015-04-28 6:17 PM
+ * angular-timer - v1.3.1.2 - 2015-08-03 6:26 PM
  * https://github.com/siddii/angular-timer
  *
  * Copyright (c) 2015 Siddique Hameed
@@ -18,6 +18,7 @@ angular.module('timer', [])
         finishCallback: '&finishCallback',
         autoStart: '&autoStart',
         language: '@?',
+        fallback: '@?',
         timeUnits: '=',
         maxTimeUnit: '='
       },
@@ -71,6 +72,12 @@ angular.module('timer', [])
         }
 
         $scope.$watch('startTimeAttr', function(newValue, oldValue) {
+          if (newValue !== oldValue && $scope.isRunning) {
+            $scope.start();
+          }
+        });
+
+        $scope.$watch('endTimeAttr', function(newValue, oldValue) {
           if (newValue !== oldValue && $scope.isRunning) {
             $scope.start();
           }
@@ -132,6 +139,9 @@ angular.module('timer', [])
 
           if ($attrs.startTime !== undefined){
             $scope.millis = moment().diff(moment($scope.startTimeAttr));
+          }
+          if ($scope.startTime && $scope.endTime && !$scope.countdown) {
+            $scope.millis = moment($scope.endTime).diff($scope.startTime);
           }
 
           timeUnits = $scope.timeUnits;
@@ -240,16 +250,18 @@ angular.module('timer', [])
         calculateTimeUnits();
 
         var tick = function tick() {
-
+          var typeTimer = null; // countdown or endTimeAttr
           $scope.millis = moment().diff($scope.startTime);
           var adjustment = $scope.millis % 1000;
 
           if ($scope.endTimeAttr) {
+            typeTimer = $scope.endTimeAttr;
             $scope.millis = moment($scope.endTime).diff(moment());
             adjustment = $scope.interval - $scope.millis % 1000;
           }
 
           if ($scope.countdownattr) {
+            typeTimer = $scope.countdownattr;
             $scope.millis = $scope.countdown * 1000;
           }
 

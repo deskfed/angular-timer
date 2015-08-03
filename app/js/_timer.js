@@ -133,6 +133,9 @@ angular.module('timer', [])
           if ($attrs.startTime !== undefined){
             $scope.millis = moment().diff(moment($scope.startTimeAttr));
           }
+          if ($scope.startTime && $scope.endTime && !$scope.countdown) {
+            $scope.millis = moment($scope.endTime).diff($scope.startTime);
+          }
 
           timeUnits = $scope.timeUnits;
 
@@ -240,16 +243,18 @@ angular.module('timer', [])
         calculateTimeUnits();
 
         var tick = function tick() {
-
+          var typeTimer = null; // countdown or endTimeAttr
           $scope.millis = moment().diff($scope.startTime);
           var adjustment = $scope.millis % 1000;
 
           if ($scope.endTimeAttr) {
+            typeTimer = $scope.endTimeAttr;
             $scope.millis = moment($scope.endTime).diff(moment());
             adjustment = $scope.interval - $scope.millis % 1000;
           }
 
           if ($scope.countdownattr) {
+            typeTimer = $scope.countdownattr;
             $scope.millis = $scope.countdown * 1000;
           }
 
